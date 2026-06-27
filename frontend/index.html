@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AlgoTime Analyzer</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+  <!-- ── Header ── -->
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">⟨/⟩</span>
+        <span class="logo-text">AlgoTime<span class="accent">Analyzer</span></span>
+      </div>
+      <p class="tagline">Measure · Compare · Visualize Algorithms</p>
+    </div>
+  </header>
+
+  <!-- ── Tab Navigation ── -->
+  <nav class="tab-nav">
+    <div class="tab-nav-inner">
+      <button class="tab-btn active" data-tab="sorting">
+        <svg class="tab-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path
+            d="M3 4a1 1 0 000 2h14a1 1 0 100-2H3zM3 9a1 1 0 000 2h9a1 1 0 100-2H3zM3 14a1 1 0 000 2h5a1 1 0 100-2H3z" />
+        </svg>
+        Sorting Analyzer
+      </button>
+      <button class="tab-btn" data-tab="search">
+        <svg class="tab-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd"
+            d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+            clip-rule="evenodd" />
+        </svg>
+        Search Analyzer
+      </button>
+    </div>
+  </nav>
+
+  <!-- ═══════════════════════════════════════
+       SORTING TAB
+       ═══════════════════════════════════════ -->
+  <main class="container" id="sortingTab">
+
+    <!-- Input section: textarea left, buttons right -->
+    <section class="card input-section">
+      <div class="input-left">
+        <h1 class="section-title">Dataset Input</h1>
+        <p class="section-sub">Enter comma-separated numbers or generate a random dataset.</p>
+        <textarea id="numberInput" class="number-input" placeholder="e.g. 5, 2, 9, 1, 7, 4, 38, 12 …" rows="3"
+          spellcheck="false"></textarea>
+        <div class="input-meta" id="inputMeta">&nbsp;</div>
+      </div>
+      <div class="input-right">
+        <button class="btn btn-primary" id="randomBtn">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="16 3 21 3 21 8" />
+            <polyline points="4 20 9 20 4 15" />
+            <path d="M21 3l-7 7M4 20l7-7" />
+          </svg>
+          Random (100)
+        </button>
+        <button class="btn btn-accent" id="compareBtn">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+          Compare
+        </button>
+        <button class="btn btn-ghost" id="clearBtn">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6l-1 14H6L5 6" />
+          </svg>
+          Clear
+        </button>
+        <div class="loader-wrap" id="loaderWrap">
+          <div class="spinner"></div><span>Running…</span>
+        </div>
+      </div>
+    </section>
+
+    <div id="resultsSection" class="hidden">
+
+      <!-- 3 timing cards -->
+      <section class="results-grid">
+        <div class="card timing-card" id="bubbleCard">
+          <div class="algo-label">Bubble Sort</div>
+          <div class="algo-time" id="bubbleTime">—</div>
+          <div class="algo-unit">milliseconds</div>
+          <div class="complexity-badge">O(n²)</div>
+        </div>
+        <div class="card timing-card" id="mergeCard">
+          <div class="algo-label">Merge Sort</div>
+          <div class="algo-time" id="mergeTime">—</div>
+          <div class="algo-unit">milliseconds</div>
+          <div class="complexity-badge">O(n log n)</div>
+        </div>
+        <div class="card timing-card" id="insertionCard">
+          <div class="algo-label">Insertion Sort</div>
+          <div class="algo-time" id="insertionTime">—</div>
+          <div class="algo-unit">milliseconds</div>
+          <div class="complexity-badge">O(n²)</div>
+        </div>
+      </section>
+
+      <!-- Winner -->
+      <br>
+      <section class="winner-wrap">
+        <div class="card winner-card">
+          <div class="winner-crown">🏆</div>
+          <div class="winner-label">Fastest Algorithm</div>
+          <div class="winner-name" id="winnerName">—</div>
+          <div class="winner-time" id="winnerTime">—</div>
+          <div class="winner-complexity" id="winnerComplexity">—</div>
+        </div>
+      </section>
+
+      <!-- Chart + Table side by side -->
+      <br>
+      <div class="sort-bottom-grid">
+        <section class="card chart-section">
+          <h2 class="section-title">Execution Time Comparison</h2>
+          <div class="chart-wrap"><canvas id="algoChart"></canvas></div>
+        </section>
+
+        <section class="card table-section">
+          <h2 class="section-title">Theoretical Complexity</h2>
+          <div class="table-wrap">
+            <table class="complexity-table">
+              <thead>
+                <tr>
+                  <th>Algorithm</th>
+                  <th>Best</th>
+                  <th>Average</th>
+                  <th>Worst</th>
+                  <th>Space</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="algo-name-cell">Bubble Sort</td>
+                  <td class="good">O(n)</td>
+                  <td class="bad">O(n²)</td>
+                  <td class="bad">O(n²)</td>
+                  <td class="good">O(1)</td>
+                </tr>
+                <tr>
+                  <td class="algo-name-cell">Merge Sort</td>
+                  <td class="medium">O(n log n)</td>
+                  <td class="medium">O(n log n)</td>
+                  <td class="medium">O(n log n)</td>
+                  <td class="bad">O(n)</td>
+                </tr>
+                <tr>
+                  <td class="algo-name-cell">Insertion Sort</td>
+                  <td class="good">O(n)</td>
+                  <td class="bad">O(n²)</td>
+                  <td class="bad">O(n²)</td>
+                  <td class="good">O(1)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ═══════════════════════════════════════
+       SEARCH TAB
+       ═══════════════════════════════════════ -->
+  <main class="container hidden" id="searchTab">
+
+    <div class="search-top-grid">
+
+      <!-- ── Left: Graph ── -->
+      <section class="card graph-card">
+        <h1 class="section-title">Graph Visualization</h1>
+        <p class="section-sub">Start: <strong>A</strong> &nbsp;|&nbsp; Goal: <strong>G</strong> &nbsp;|&nbsp; h(n)
+          updates from your inputs</p>
+
+        <div class="svg-wrap">
+          <svg id="graphSVG" viewBox="0 0 580 460" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                <polygon points="0 0,8 3,0 6" fill="#475569" />
+              </marker>
+              <marker id="arrow-bfs" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                <polygon points="0 0,8 3,0 6" fill="#38BDF8" />
+              </marker>
+              <marker id="arrow-gbfs" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                <polygon points="0 0,8 3,0 6" fill="#8B5CF6" />
+              </marker>
+              <marker id="arrow-astar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                <polygon points="0 0,8 3,0 6" fill="#22C55E" />
+              </marker>
+              <filter id="node-glow" x="-60%" y="-60%" width="220%" height="220%">
+                <feGaussianBlur stdDeviation="4" result="b" />
+                <feMerge>
+                  <feMergeNode in="b" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+            <g fill="none">
+              <line id="edge-A-B" class="graph-edge" x1="270" y1="72" x2="174" y2="155" marker-end="url(#arrow)" />
+              <line id="edge-A-C" class="graph-edge" x1="310" y1="72" x2="407" y2="155" marker-end="url(#arrow)" />
+              <line id="edge-B-D" class="graph-edge" x1="137" y1="198" x2="85" y2="288" marker-end="url(#arrow)" />
+              <line id="edge-B-E" class="graph-edge" x1="163" y1="198" x2="215" y2="288" marker-end="url(#arrow)" />
+              <line id="edge-C-F" class="graph-edge" x1="430" y1="201" x2="430" y2="284" marker-end="url(#arrow)" />
+              <line id="edge-D-G" class="graph-edge" x1="94" y1="326" x2="262" y2="402" marker-end="url(#arrow)" />
+              <line id="edge-E-G" class="graph-edge" x1="243" y1="337" x2="274" y2="388" marker-end="url(#arrow)" />
+              <line id="edge-F-G" class="graph-edge" x1="409" y1="330" x2="315" y2="397" marker-end="url(#arrow)" />
+            </g>
+            <g class="edge-weights" font-size="11" fill="#64748B" text-anchor="middle" font-family="monospace">
+              <text id="ew-A-B" x="215" y="106">2</text>
+              <text id="ew-A-C" x="368" y="106">1</text>
+              <text id="ew-B-D" x="100" y="248">3</text>
+              <text id="ew-B-E" x="205" y="244">1</text>
+              <text id="ew-C-F" x="449" y="250">2</text>
+              <text id="ew-D-G" x="162" y="372">2</text>
+              <text id="ew-E-G" x="248" y="368">3</text>
+              <text id="ew-F-G" x="376" y="370">1</text>
+            </g>
+            <g class="nodes">
+              <g id="node-A" class="graph-node" data-state="start">
+                <circle cx="290" cy="55" r="26" />
+                <text x="290" y="51" class="node-label">A</text>
+                <text id="nh-A" x="290" y="65" class="node-h">h=7</text>
+              </g>
+              <g id="node-B" class="graph-node" data-state="default">
+                <circle cx="150" cy="175" r="26" />
+                <text x="150" y="171" class="node-label">B</text>
+                <text id="nh-B" x="150" y="181" class="node-h">h=6</text>
+              </g>
+              <g id="node-C" class="graph-node" data-state="default">
+                <circle cx="430" cy="175" r="26" />
+                <text x="430" y="171" class="node-label">C</text>
+                <text id="nh-C" x="430" y="181" class="node-h">h=4</text>
+              </g>
+              <g id="node-D" class="graph-node" data-state="default">
+                <circle cx="70" cy="315" r="26" />
+                <text x="70" y="311" class="node-label">D</text>
+                <text id="nh-D" x="70" y="321" class="node-h">h=4</text>
+              </g>
+              <g id="node-E" class="graph-node" data-state="default">
+                <circle cx="230" cy="315" r="26" />
+                <text x="230" y="311" class="node-label">E</text>
+                <text id="nh-E" x="230" y="321" class="node-h">h=2</text>
+              </g>
+              <g id="node-F" class="graph-node" data-state="default">
+                <circle cx="430" cy="315" r="26" />
+                <text x="430" y="311" class="node-label">F</text>
+                <text id="nh-F" x="430" y="321" class="node-h">h=1</text>
+              </g>
+              <g id="node-G" class="graph-node" data-state="goal">
+                <circle cx="290" cy="420" r="26" />
+                <text x="290" y="416" class="node-label">G</text>
+                <text id="nh-G" x="290" y="426" class="node-h">h=0</text>
+              </g>
+            </g>
+          </svg>
+        </div>
+
+        <div class="graph-legend">
+          <span class="legend-item"><span class="ld ld-start"></span>Start (A)</span>
+          <span class="legend-item"><span class="ld ld-goal"></span>Goal (G)</span>
+          <span class="legend-item"><span class="ld ld-bfs"></span>BFS path</span>
+          <span class="legend-item"><span class="ld ld-gbfs"></span>GBFS path</span>
+          <span class="legend-item"><span class="ld ld-astar"></span>A* path</span>
+        </div>
+
+        <div class="path-toggle-row hidden" id="pathToggleRow">
+          <span class="toggle-label">Highlight on graph:</span>
+          <div class="toggle-btns">
+            <button class="path-btn bfs-btn" data-algo="bfs">BFS</button>
+            <button class="path-btn gbfs-btn" data-algo="gbfs">GBFS</button>
+            <button class="path-btn astar-btn" data-algo="astar">A*</button>
+            <button class="path-btn none-btn" data-algo="none">Clear</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Right: Parameters ── -->
+      <div class="search-right-col">
+        <section class="card params-card">
+          <h2 class="section-title">Graph Parameters</h2>
+          <p class="section-sub">Edit values — graph labels update instantly.</p>
+
+          <div class="param-section">
+            <div class="param-group-title">Heuristic h(n) — estimated cost to goal</div>
+            <div class="param-grid h-grid">
+              <div class="param-item"><span class="param-label">A</span><input class="param-input" type="number"
+                  id="h-A" value="7" min="0"></div>
+              <div class="param-item"><span class="param-label">B</span><input class="param-input" type="number"
+                  id="h-B" value="6" min="0"></div>
+              <div class="param-item"><span class="param-label">C</span><input class="param-input" type="number"
+                  id="h-C" value="4" min="0"></div>
+              <div class="param-item"><span class="param-label">D</span><input class="param-input" type="number"
+                  id="h-D" value="4" min="0"></div>
+              <div class="param-item"><span class="param-label">E</span><input class="param-input" type="number"
+                  id="h-E" value="2" min="0"></div>
+              <div class="param-item"><span class="param-label">F</span><input class="param-input" type="number"
+                  id="h-F" value="1" min="0"></div>
+              <div class="param-item"><span class="param-label">G</span><input class="param-input" type="number"
+                  id="h-G" value="0" min="0"></div>
+            </div>
+          </div>
+
+          <div class="param-section">
+            <div class="param-group-title">Edge Weights</div>
+            <div class="param-grid w-grid">
+              <div class="param-item"><span class="param-label">A→B</span><input class="param-input" type="number"
+                  id="w-A-B" value="2" min="1"></div>
+              <div class="param-item"><span class="param-label">A→C</span><input class="param-input" type="number"
+                  id="w-A-C" value="1" min="1"></div>
+              <div class="param-item"><span class="param-label">B→D</span><input class="param-input" type="number"
+                  id="w-B-D" value="3" min="1"></div>
+              <div class="param-item"><span class="param-label">B→E</span><input class="param-input" type="number"
+                  id="w-B-E" value="1" min="1"></div>
+              <div class="param-item"><span class="param-label">C→F</span><input class="param-input" type="number"
+                  id="w-C-F" value="2" min="1"></div>
+              <div class="param-item"><span class="param-label">D→G</span><input class="param-input" type="number"
+                  id="w-D-G" value="2" min="1"></div>
+              <div class="param-item"><span class="param-label">E→G</span><input class="param-input" type="number"
+                  id="w-E-G" value="3" min="1"></div>
+              <div class="param-item"><span class="param-label">F→G</span><input class="param-input" type="number"
+                  id="w-F-G" value="1" min="1"></div>
+            </div>
+          </div>
+
+          <div class="btn-row param-btns">
+            <button class="btn btn-accent" id="searchCompareBtn">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+              Run Comparison
+            </button>
+            <button class="btn btn-ghost" id="resetParamsBtn">Reset</button>
+          </div>
+
+          <div class="loader-wrap" id="searchLoaderWrap">
+            <div class="spinner"></div><span>Running…</span>
+          </div>
+        </section>
+      </div>
+
+    </div><!-- /search-top-grid -->
+
+    <!-- ── Results ── -->
+    <div id="searchResultsSection" class="hidden">
+
+      <section class="results-grid">
+        <div class="card timing-card search-card" id="bfsResultCard">
+          <div class="algo-label">BFS</div>
+          <div class="algo-time" id="bfsResultTime">—</div>
+          <div class="algo-unit">milliseconds</div>
+          <div class="search-stats">
+            <div class="stat-row"><span class="stat-label">Nodes Visited</span><span class="stat-value"
+                id="bfsNodes">—</span></div>
+            <div class="stat-row"><span class="stat-label">Path Hops</span><span class="stat-value"
+                id="bfsHops">—</span></div>
+            <div class="stat-row"><span class="stat-label">Path Cost</span><span class="stat-value"
+                id="bfsCost">—</span></div>
+          </div>
+          <div class="traversal-block">
+            <div class="trav-row"><span class="trav-tag">Visited</span><span class="trav-seq" id="bfsVisited">—</span>
+            </div>
+            <div class="trav-row trav-path-row"><span class="trav-tag path-found-tag bfs-tag">Path</span><span
+                class="trav-seq bfs-path-seq" id="bfsFoundPath">—</span></div>
+          </div>
+        </div>
+
+        <div class="card timing-card search-card" id="gbfsResultCard">
+          <div class="algo-label">GBFS</div>
+          <div class="algo-time" id="gbfsResultTime">—</div>
+          <div class="algo-unit">milliseconds</div>
+          <div class="search-stats">
+            <div class="stat-row"><span class="stat-label">Nodes Visited</span><span class="stat-value"
+                id="gbfsNodes">—</span></div>
+            <div class="stat-row"><span class="stat-label">Path Hops</span><span class="stat-value"
+                id="gbfsHops">—</span></div>
+            <div class="stat-row"><span class="stat-label">Path Cost</span><span class="stat-value"
+                id="gbfsCost">—</span></div>
+          </div>
+          <div class="traversal-block">
+            <div class="trav-row"><span class="trav-tag">Visited</span><span class="trav-seq" id="gbfsVisited">—</span>
+            </div>
+            <div class="trav-row trav-path-row"><span class="trav-tag path-found-tag gbfs-tag">Path</span><span
+                class="trav-seq gbfs-path-seq" id="gbfsFoundPath">—</span></div>
+          </div>
+        </div>
+
+        <div class="card timing-card search-card" id="astarResultCard">
+          <div class="algo-label">A* Search</div>
+          <div class="algo-time" id="astarResultTime">—</div>
+          <div class="algo-unit">milliseconds</div>
+          <div class="search-stats">
+            <div class="stat-row"><span class="stat-label">Nodes Visited</span><span class="stat-value"
+                id="astarNodes">—</span></div>
+            <div class="stat-row"><span class="stat-label">Path Hops</span><span class="stat-value"
+                id="astarHops">—</span></div>
+            <div class="stat-row"><span class="stat-label">Path Cost</span><span class="stat-value"
+                id="astarCost">—</span></div>
+          </div>
+          <div class="traversal-block">
+            <div class="trav-row"><span class="trav-tag">Visited</span><span class="trav-seq" id="astarVisited">—</span>
+            </div>
+            <div class="trav-row trav-path-row"><span class="trav-tag path-found-tag astar-tag">Path</span><span
+                class="trav-seq astar-path-seq" id="astarFoundPath">—</span></div>
+          </div>
+        </div>
+      </section>
+      <br>
+      <section class="winner-wrap">
+        <div class="card winner-card search-winner-card">
+          <div class="winner-crown">🏆</div>
+          <div class="winner-label">Best Search Algorithm</div>
+          <div class="winner-name" id="searchWinnerName">—</div>
+          <div class="winner-time" id="searchWinnerTime">—</div>
+          <div class="winner-meta-row">
+            <span class="winner-meta-chip" id="searchWinnerNodes">—</span>
+            <span class="winner-meta-chip" id="searchWinnerCost">—</span>
+          </div>
+          <p class="winner-reason-text" id="searchWinnerReason">—</p>
+        </div>
+      </section>
+      <br>
+      <div class="charts-grid">
+        <section class="card chart-section">
+          <h2 class="section-title">Execution Time (ms)</h2>
+          <div class="chart-wrap"><canvas id="searchTimeChart"></canvas></div>
+        </section>
+        <section class="card chart-section">
+          <h2 class="section-title">Nodes Visited</h2>
+          <div class="chart-wrap"><canvas id="searchNodesChart"></canvas></div>
+        </section>
+      </div>
+      <br>
+      <section class="card table-section">
+        <h2 class="section-title">Algorithm Characteristics</h2>
+        <div class="table-wrap">
+          <table class="complexity-table">
+            <thead>
+              <tr>
+                <th>Algorithm</th>
+                <th>Strategy</th>
+                <th>Time</th>
+                <th>Space</th>
+                <th>Optimal?</th>
+                <th>Complete?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="algo-name-cell">BFS</td>
+                <td class="cell-muted">Level-by-level FIFO</td>
+                <td class="medium">O(V+E)</td>
+                <td class="bad">O(V)</td>
+                <td class="good">Yes*</td>
+                <td class="good">Yes</td>
+              </tr>
+              <tr>
+                <td class="algo-name-cell">GBFS</td>
+                <td class="cell-muted">Greedy h(n)</td>
+                <td class="medium">O(V+E)</td>
+                <td class="medium">O(V)</td>
+                <td class="bad">No</td>
+                <td class="medium">Sometimes</td>
+              </tr>
+              <tr>
+                <td class="algo-name-cell">A* Search</td>
+                <td class="cell-muted">f(n) = g(n) + h(n)</td>
+                <td class="medium">O(E log V)</td>
+                <td class="bad">O(V)</td>
+                <td class="good">Yes</td>
+                <td class="good">Yes</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="table-note">* BFS optimal for edge-count (unweighted). Not cost-optimal in weighted graphs.</p>
+        </div>
+      </section>
+
+    </div><!-- /searchResultsSection -->
+  </main>
+
+  <footer class="site-footer">
+    <p>AlgoTime Analyzer &mdash; Python Flask &amp; Chart.js</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
